@@ -20,7 +20,6 @@ class Post(Base):
     password   = Column(String(30), nullable=False)
     title      = Column(String(100), nullable=False)
     content    = Column(String(1000), nullable=False)
-    file       = Column(String(200), nullable=True)
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -29,6 +28,13 @@ class Comment(Base):
     admin_id   = Column(ForeignKey("admins.id"), nullable=False)
     post_id    = Column(ForeignKey("posts.id"), nullable=False)
     content    = Column(String(1000), nullable=False)
+
+class File(Base):
+    __tablename__ = "files"
+
+    id         = Column(Integer, primary_key=True, index=True, autoincrement=True, nullable=False)
+    post_id    = Column(ForeignKey("posts.id"), nullable=False)
+    file_url   = Column(String(150), nullable=False)
 
 class Notice(Base):
     __tablename__ = "notices"

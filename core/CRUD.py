@@ -1,6 +1,7 @@
-from .                import models, schemas
-from sqlalchemy.orm   import Session
+from .                 import models, schemas
+from sqlalchemy.orm    import Session
 from fastapi           import UploadFile, File
+from typing            import List
 
 def get_post(db : Session):
     db_post_list = db.query(models.Post).all()
@@ -10,12 +11,18 @@ def get_post(db : Session):
 
     return db_post_list
 
-def create_post(post : schemas.PostCreate, file : UploadFile, db : Session):
+def create_post(post : schemas.PostCreate, files, db : Session):
     try:
-        db_post = models.Post(nickname = post.nickname, password = post.password, title = post.title, content = post.content, file = file)
+        db_post = models.Post(nickname = post.nickname, password = post.password, title = post.title, content = post.content)
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
+
+        for file in files:
+            db_file = models.File(file_url = file)
+            db.add(db_file)
+            db.commit()
+            db.refresh(db_file)
 
         return db_post, db
 

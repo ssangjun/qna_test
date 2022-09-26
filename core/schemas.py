@@ -1,5 +1,6 @@
 from turtle     import title
 from pydantic   import BaseModel
+from fastapi    import UploadFile, File
 
 class AdminLogin(BaseModel):
     email : str
