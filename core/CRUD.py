@@ -19,7 +19,7 @@ def create_post(post : schemas.PostCreate, files, db : Session):
         db.refresh(db_post)
 
         for file in files:
-            db_file = models.File(file_url = file)
+            db_file = models.File(post_id = db_post.id, file_url = file)
             db.add(db_file)
             db.commit()
             db.refresh(db_file)
@@ -56,18 +56,26 @@ def delete_post(post : schemas.PostPatch, db : Session):
 
         return False
 
-def modify_post(post : schemas.PostModify, db : Session):
+def modify_post(post : schemas.PostModify, files, db : Session):
     try:
         db_post = db.query(models.Post).filter(models.Post.id == post.id).first()
         
         db_post.nickname = post.nickname
         db_post.password = post.password
-        db_post.title = post.title
-        db_post.content = post.content
+        db_post.title    = post.title
+        db_post.content  = post.content
         
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
+
+        db_file = db.query(models.File).filter(models.File.post_id == post.id).delete()
+
+        for file in files:
+            db_file = models.File(post_id = post.id, file_url = file)
+            db.add(db_file)
+            db.commit()
+            db.refresh(db_file)
 
         return db_post, db
 
