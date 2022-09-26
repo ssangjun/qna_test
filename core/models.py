@@ -1,7 +1,4 @@
-from email import contentmanager
-from msilib.schema import File
-from sqlalchemy     import Boolean, Column, ForeignKey, Integer, String, DECIMAL, Text, func, text, TIMESTAMP
-from sqlalchemy.orm import relationship
+from sqlalchemy     import Column, ForeignKey, Integer, String, func, text, TIMESTAMP
 
 from .database      import Base
 

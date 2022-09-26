@@ -1,8 +1,6 @@
 from turtle     import title
 from pydantic   import BaseModel
 
-from typing     import Union
-
 class AdminLogin(BaseModel):
     email : str
     password : str
