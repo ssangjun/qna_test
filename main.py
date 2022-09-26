@@ -1,32 +1,29 @@
-from ast import For
-import uvicorn, uuid, os
+import uuid, os
 
-from typing            import Union, List
-from pathlib           import Path
-from fastapi           import FastAPI, Depends, status, UploadFile, File, Form
-from fastapi.responses import JSONResponse
-from fastapi.encoders  import jsonable_encoder
+from typing                  import Optional, Union, List
+from pathlib                 import Path
+from sqlalchemy.orm          import Session
+
+from fastapi                 import FastAPI, Depends, status, UploadFile, File, Form
+from fastapi.encoders        import jsonable_encoder
+from fastapi.responses       import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from sqlalchemy.orm    import Session
-
-from core.user_utils   import hash_password, authenticate_post
-from core.schemas      import PostCreate, PostModify, PostPatch
-from core.database     import get_db
-from core.CRUD         import create_post, get_post, delete_post, modify_post 
-
+from core.CRUD               import create_post, get_post, delete_post, modify_post 
+from core.schemas            import PostCreate, PostModify, PostPatch
+from core.database           import get_db
+from core.user_utils         import hash_password, authenticate_post
 
 app = FastAPI()
 
 BASE_DIR = Path(__file__).resolve().parent
-origins = ["*"]
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins = origins,
-  allow_credentials = True,
+  allow_origins = ["*"],
   allow_methods = ["*"],
-  allow_headers = ["*"]
+  allow_headers = ["*"],
+  allow_credentials = True,
 )
 
 # @app.get("/admins/login")
@@ -48,7 +45,8 @@ async def post_upload( nickname = Form(),
                        password = Form(), 
                        title    = Form(), 
                        content  = Form(), 
-                       file_list : List[UploadFile] = File(), db : Session = Depends(get_db)):
+                       file : Union[UploadFile, None] = File(None), 
+                       db : Session = Depends(get_db)):
 
     try:
         form_data = PostCreate
@@ -59,9 +57,10 @@ async def post_upload( nickname = Form(),
         hashed_password = hash_password(password)
 
         form_data.password = hashed_password
- 
-        file_urls = []
-        for file in file_list:
+
+        file_path = None
+
+        if file:
             image_file = await file.read()
 
             file_name = f"{str(uuid.uuid4())}.jpg" 
@@ -70,9 +69,7 @@ async def post_upload( nickname = Form(),
             with open(file_path, "wb") as fp:
                 fp.write(image_file)
 
-            file_urls.append(file_path)
-
-        db_post, update_db = create_post(post=form_data, files=file_urls, db=db)
+        db_post, update_db = create_post(post=form_data, file=file_path, db=db)
 
         if not db_post:
             return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="CREATE_FAILED")
@@ -127,7 +124,8 @@ async def post_modify( post_id  = Form(),
                        password = Form(), 
                        title    = Form(), 
                        content  = Form(), 
-                       file_list : List[UploadFile] = File(), db : Session = Depends(get_db)):
+                       file : Union[UploadFile, None] = File(None), 
+                       db : Session = Depends(get_db)):
 
     try:
         form_data = PostModify
@@ -140,8 +138,9 @@ async def post_modify( post_id  = Form(),
 
         form_data.password = hashed_password
         
-        file_urls = []
-        for file in file_list:
+        file_path = None
+
+        if file:
             image_file = await file.read()
 
             file_name = f"{str(uuid.uuid4())}.jpg" 
@@ -150,9 +149,7 @@ async def post_modify( post_id  = Form(),
             with open(file_path, "wb") as fp:
                 fp.write(image_file)
 
-            file_urls.append(file_path)
-
-        db_post, update_db = modify_post(post=form_data, files=file_urls, db=db)
+        db_post, update_db = modify_post(post=form_data, file=file_path, db=db)
 
         if not db_post:
             return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="CREATE_FAILED")
@@ -175,5 +172,3 @@ async def post_modify( post_id  = Form(),
         update_db.rollback()
         update_db.flush()
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="TYPE_ERROR")
-
-
