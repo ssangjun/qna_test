@@ -1,4 +1,5 @@
 from sqlalchemy     import Column, ForeignKey, Integer, String, func, text, TIMESTAMP
+from sqlalchemy.orm import relationship, backref
 
 from .database      import Base
 
@@ -21,6 +22,8 @@ class Post(Base):
     title      = Column(String(100), nullable=False)
     content    = Column(String(1000), nullable=False)
 
+    # post_set = relationship("File", backref=backref("post"))
+
 class Comment(Base):
     __tablename__ = "comments"
 
@@ -29,12 +32,15 @@ class Comment(Base):
     post_id    = Column(ForeignKey("posts.id"), nullable=False)
     content    = Column(String(1000), nullable=False)
 
+
 class File(Base):
     __tablename__ = "files"
 
     id         = Column(Integer, primary_key=True, index=True, autoincrement=True, nullable=False)
-    post_id    = Column(ForeignKey("posts.id"), nullable=False)
+    post_id    = Column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     file_url   = Column(String(150), nullable=False)
+
+    post = relationship("Post", backref=backref("post_set", cascade="delete"))
 
 class Notice(Base):
     __tablename__ = "notices"
