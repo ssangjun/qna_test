@@ -80,6 +80,7 @@ async def post_upload( nickname = Form(),
         hashed_password    = hash_password(password)
         form_data.password = hashed_password
 
+        print(files)
         db_post, update_db = await create_post(post=form_data, files=files, db=db)
 
         if not db_post:
