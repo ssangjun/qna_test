@@ -39,9 +39,10 @@ async def get_post_list(db : Session = Depends(get_db)):
     for db_post in db_post_list:
         data = {}
 
-        data["post_id"] = db_post.id
-        data["title"]   = db_post.title
-
+        data["post_id"]  = db_post.id
+        data["title"]    = db_post.title
+        data["nickname"] = db_post.nickname
+        
         return_post_list.append(data)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=return_post_list)
@@ -80,7 +81,6 @@ async def post_upload( nickname = Form(),
         hashed_password    = hash_password(password)
         form_data.password = hashed_password
 
-        print(files)
         db_post, update_db = await create_post(post=form_data, files=files, db=db)
 
         if not db_post:
