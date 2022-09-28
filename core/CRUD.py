@@ -60,7 +60,7 @@ async def create_post(post : schemas.PostCreate, files : list, db : Session):
         return False, db
 
 def get_post_by_id(post_id : str, db : Session):
-    db_post = db.query(models.Post.id, models.Post.title, models.Post.content, models.Post.nickname).filter(models.Post.id == post_id).first()
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
     
     if not db_post:
         return False
@@ -70,6 +70,7 @@ def get_post_by_id(post_id : str, db : Session):
 def delete_post(post : schemas.PostPatch, db : Session):
     
     try:
+
         s3 = boto3.client(
             service_name = "s3", 
             region_name = AWS_REGION_NAME, 
@@ -80,9 +81,9 @@ def delete_post(post : schemas.PostPatch, db : Session):
         
         for file_url in db_file_urls:
             file_name = str(file_url).split('/')[4].split('\'')[0]
-
-            s3.delete_object(Bucket=S3_BUCKET_NAME, Key=file_name)
-
+            print(file_name)
+            s3.delete_object(Bucket=S3_BUCKET_NAME, Key=f"{S3_FOLDER_NAME}/{file_name}")
+        
         db.query(models.Post).filter(models.Post.id == post.id).delete()
         db.commit()
 

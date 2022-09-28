@@ -34,7 +34,6 @@ async def get_post_list(db : Session = Depends(get_db)):
     if not db_post_list:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content="NON_PROJECT")
 
-
     return_post_list = []
 
     for db_post in db_post_list:
@@ -54,8 +53,13 @@ async def get_detail_post(post_id : int, db : Session = Depends(get_db)):
     if not db_post:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content="NON_PROJECT")
 
-    return_db_post = jsonable_encoder(db_post)
-
+    return_db_post = {
+        "post_id"  : db_post.id,
+        "title"    : db_post.title,
+        "content"  : db_post.content,
+        "nickname" : db_post.nickname
+    }
+    
     return JSONResponse(status_code=status.HTTP_200_OK, content=return_db_post)
 
 @app.post("/QnA/upload", tags=["QnA"])
@@ -72,8 +76,8 @@ async def post_upload( nickname = Form(),
         form_data.nickname = nickname
         form_data.title    = title
         form_data.content  = content
-        hashed_password = hash_password(password)
 
+        hashed_password    = hash_password(password)
         form_data.password = hashed_password
 
         db_post, update_db = await create_post(post=form_data, files=files, db=db)
@@ -142,8 +146,7 @@ async def post_modify( post_id  = Form(),
         form_data.title    = title
         form_data.content  = content
 
-        hashed_password = hash_password(password)
-
+        hashed_password    = hash_password(password)
         form_data.password = hashed_password
 
         db_post, update_db = await modify_post(post=form_data, files=files, db=db)
