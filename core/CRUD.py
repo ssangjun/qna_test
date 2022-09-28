@@ -60,7 +60,7 @@ async def create_post(post : schemas.PostCreate, files : list, db : Session):
         return False, db
 
 def get_post_by_id(post_id : str, db : Session):
-    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    db_post = db.query(models.Post.id, models.Post.title, models.Post.content, models.Post.nickname).filter(models.Post.id == post_id).first()
     
     if not db_post:
         return False
